@@ -1,0 +1,139 @@
+
+
+@keyframes slideIn {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-slideIn {
+    animation: slideIn 1s ease-in-out;
+  }
+  
+  @keyframes autoRun {
+    from {
+      transform: perspective(1000px) rotateY(0deg);
+    }
+    to {
+      transform: perspective(1000px) rotateY(360deg);
+    }
+  }
+  
+  /* Banner Section */
+  .banner {
+    background: url('/src/Images/ian-schneider-TamMbr4okv4-unsplash.jpg') no-repeat center center/cover;
+    width: 100%;
+    height: 100vh;
+    text-align: center;
+    overflow: hidden;
+    position: relative;
+  
+  }
+  
+  .banner .slider {
+    position: absolute;
+    width: 200px;
+    height: 250px;
+    top: 20%;
+    left: calc(50% - 100px);
+    transform-style: preserve-3d;
+    transform: perspective(1000px);
+    animation: autoRun 20s linear infinite;
+  }
+  
+  .banner .slider .item {
+    position: absolute;
+    inset: 0 0 0 0;
+    transform: rotateY(calc((var(--position) - 1) * (360deg / var(--quantity)))) translateZ(550px);
+  }
+  
+  .banner .slider .item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  /* Responsive Media Queries */
+  @media screen and (max-width: 768px) {
+    .banner .slider {
+      width: 160px;
+      height: 200px;
+      top: 30%;
+    }
+  }
+  
+
+
+/* Animations */
+/* @keyframes slideIn {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-slideIn {
+    animation: slideIn 1s ease-in-out;
+  }
+  
+  @keyframes autoRun {
+    from {
+      transform: perspective(1000px) rotateY(0deg);
+    }
+    to {
+      transform: perspective(1000px) rotateY(360deg);
+    }
+  }
+  
+  /* Banner Section */
+  /* .banner {
+    padding-bottom: 120px;
+    background: rgb(189, 187, 197);
+    width: 100%;
+    height: 100vh;
+    text-align: center;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .banner .slider {
+    position: absolute;
+    width: 200px;
+    height: 250px;
+    top: 20%;
+    left: calc(50% - 100px);
+    transform-style: preserve-3d;
+    transform: perspective(1000px);
+    animation: autoRun 20s linear infinite;
+  }
+  
+  .banner .slider .item {
+    position: absolute;
+    inset: 0 0 0 0;
+    transform: rotateY(calc((var(--position) - 1) * (360deg / var(--quantity)))) translateZ(550px);
+  }
+  
+  .banner .slider .item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  /* Responsive Media Queries */
+  /* @media screen and (max-width: 768px) {
+    .banner .slider {
+      width: 160px;
+      height: 200px;
+      top: 30%;
+    } */
+  /* } */
+   
