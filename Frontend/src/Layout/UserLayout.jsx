@@ -1,20 +1,42 @@
 import React, { useState } from "react";
 import UserPage from "../Pages/User/UserPage";
 import NotificationPage from "../Pages/User/Notification";
-// import ProfilePage from "../Pages/UserProfilePage";
 import Footer2 from "../Components/Footer2";
 import Sidebar from "../Components/User/Sidebar";
 import Navbar from "../Components/User/Navbar";
 import JobList from "../Pages/User/JobList";
 import AppliedJobs from "../Pages/User/AppliedJobs";
 import SavedJobs from "../Pages/User/SavedJobs";
-import UserEditProfile from "../Pages/User/UserEditProfile"
-
-
+import UserEditProfile from "../Pages/User/UserEditProfile";
 
 const UserLayout = () => {
   // State to track the current page
   const [currentPage, setCurrentPage] = useState("user");
+
+  // Function to fetch user details (placeholder implementation)
+  const fetchUserDetails = async () => {
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await fetch(`/api/auth/getUserDetails`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch user details.");
+      }
+
+      const data = await response.json();
+      console.log("User details:", data);
+      return data;
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+    }
+  };
 
   // Function to render the selected page
   const renderPage = () => {
@@ -26,14 +48,13 @@ const UserLayout = () => {
       case "joblist":
         return <JobList />;
       case "applied":
-          return <AppliedJobs />;
+        return <AppliedJobs />;
       case "saved":
-          return <SavedJobs/>;
+        return <SavedJobs />;
       case "profile":
-          return <JobList />;
+        return <JobList />;
       case "editprofile":
-          return <UserEditProfile fetchUserDetails={fetchUserDetails}/>
-
+        return <UserEditProfile fetchUserDetails={fetchUserDetails} />;
       default:
         return <UserPage />;
     }
@@ -50,7 +71,7 @@ const UserLayout = () => {
       <div className="flex-1 ml-64 flex flex-col">
         {/* Navbar */}
         <header className="fixed top-0 left-64 right-0 bg-blue-600 text-white z-10">
-        <Navbar setCurrentPage={setCurrentPage} />
+          <Navbar setCurrentPage={setCurrentPage} />
         </header>
 
         {/* Main Content */}

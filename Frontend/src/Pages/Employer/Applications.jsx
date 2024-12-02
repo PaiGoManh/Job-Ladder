@@ -1,35 +1,33 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 
 const EmployerJobApplications = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch jobs with applications
   const fetchJobsWithApplications = async () => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem('token');
 
     if (!token) {
-      setError("Authentication token is missing");
+      setError('Authentication token is missing');
       return;
     }
 
     try {
-      const response = await fetch("/api/job/employer/applications", {
-        method: "GET",
+      const response = await fetch('/api/job/applications', {
+        method: 'GET',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
       });
 
       if (!response.ok) {
-        throw new Error("Failed to fetch job applications");
+        throw new Error('Failed to fetch job applications');
       }
 
       const data = await response.json();
       setJobs(data.jobs);
-      console.log(data) // Assuming the response is in the format { jobs: [...] }
       setLoading(false);
     } catch (error) {
       setError(error.message);
@@ -37,145 +35,55 @@ const EmployerJobApplications = () => {
     }
   };
 
-  // Handle the application status change
   const handleApplicationStatusChange = async (jobId, applicationId, newStatus) => {
-    const token = localStorage.getItem("token");
-  
+    const token = localStorage.getItem('token');
+
     if (!token) {
-      setError("Authentication token is missing");
+      alert('Authentication token is missing');
       return;
     }
-  
+
     try {
       const response = await fetch(`/api/job/${newStatus.toLowerCase()}/${jobId}/${applicationId}`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
       });
-  
+
       if (!response.ok) {
-        throw new Error("Failed to update application status");
+        throw new Error(`Failed to ${newStatus.toLowerCase()} the application`);
       }
-  
-      const data = await response.json();
-      
-      // Update the local state to reflect the change
+
       setJobs((prevJobs) =>
         prevJobs.map((job) =>
-          job._id === jobId
+          job.id === jobId
             ? {
                 ...job,
-                applications: job.applications.map((application) =>
-                  application._id === applicationId
-                    ? { ...application, status: newStatus }
-                    : application
+                applications: job.applications.map((app) =>
+                  app.applicationId === applicationId
+                    ? { ...app, status: newStatus }
+                    : app
                 ),
               }
             : job
         )
       );
-  
-      // You can show a success message here if needed
-      alert(`${newStatus} the application successfully!`);
-  
-    } catch (error) {
-      setError(error.message);
-    }
-  };
 
-  const acceptApplication = async (jobId,applicationId) => {
-    const token = localStorage.getItem("token");
-    console.log(token,'accepting check')
-    if (!token) {
-      alert("Authentication token is missing");
-      return;
-    }
-  
-    try {
-      const response = await fetch(`/api/job/accept/${jobId}/${applicationId}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-  
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || "Failed to accept the application");
-      }
-  
-      const data = await response.json();
-      alert("Application accepted successfully!");
-      // Update the local state to reflect the acceptance of the application
-      setJobs(prevJobs => prevJobs.map(job =>
-        job._id === jobId
-          ? {
-              ...job,
-              applications: job.applications.map(app =>
-                app._id === applicationId ? { ...app, status: "Accepted" } : app
-              ),
-            }
-          : job
-      ));
-      
+      alert(`Application ${newStatus.toLowerCase()}ed successfully!`);
     } catch (error) {
       alert(`Error: ${error.message}`);
     }
   };
-
-  const rejectApplication = async (jobId, applicationId) => {
-    const token = localStorage.getItem("token");
-  
-    if (!token) {
-      alert("Authentication token is missing");
-      return;
-    }
-  
-    try {
-      const response = await fetch(`/api/job/reject/${jobId}/${applicationId}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-  
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || "Failed to reject the application");
-      }
-  
-      const data = await response.json();
-      alert("Application rejected successfully!");
-      // Update the local state to reflect the rejection of the application
-      setJobs(prevJobs => prevJobs.map(job =>
-        job._id === jobId
-          ? {
-              ...job,
-              applications: job.applications.map(app =>
-                app._id === applicationId ? { ...app, status: "Rejected" } : app
-              ),
-            }
-          : job
-      ));
-      
-    } catch (error) {
-      alert(`Error: ${error.message}`);
-    }
-  };
-  
-  
 
   useEffect(() => {
     fetchJobsWithApplications();
   }, []);
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-blue-100 to-blue-300 p-8 mt-[-5%]">
-      <div className="bg-gradient-to-r from-blue-400 to-blue-600 shadow-xl rounded-xl p-8 w-full lg:w-3/4 animate-fadeIn">
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-blue-100 to-blue-300 p-8">
+      <div className="bg-gradient-to-r from-blue-400 to-blue-600 shadow-xl rounded-xl p-8 w-full lg:w-3/4">
         <h2 className="text-center text-3xl font-bold text-white mb-8">Employer Job Applications</h2>
         {loading ? (
           <div className="text-center text-white">Loading...</div>
@@ -183,13 +91,12 @@ const EmployerJobApplications = () => {
           <div className="text-center text-red-500">{error}</div>
         ) : (
           jobs.map((job) => (
-            <div key={job._id} className="mb-10">
-              <h3 className="text-xl font-semibold text-white mb-4">{job.title}</h3>
-              <p className="text-black mb-4">{job.description}</p>
-
+            <div key={job.id} className="mb-10">
+              <h3 className="text-xl font-semibold text-white mb-4">{job.jobTitle}</h3>
+              <p className="text-black mb-4">{job.jobDescription}</p>
               <table className="table-fixed min-w-full border-collapse border border-blue-300 rounded-lg mb-8">
                 <thead>
-                  <tr className="bg-blue-500 sticky top-0 z-10">
+                  <tr className="bg-blue-500">
                     <th className="w-1/4 px-6 py-3 border border-blue-300 text-left font-semibold text-white">User Name</th>
                     <th className="w-1/4 px-6 py-3 border border-blue-300 text-left font-semibold text-white">Status</th>
                     <th className="w-1/6 px-6 py-3 border border-blue-300 text-left font-semibold text-white">Applied At</th>
@@ -197,30 +104,32 @@ const EmployerJobApplications = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {job.applications.map((application) => (
-                    <tr key={application._id} className="even:bg-blue-100 odd:bg-white hover:bg-blue-200 transition">
-                      <td className="px-6 py-4 border border-blue-300 text-black">
-                        {application.userName} {/* Display user's name */}
-                      </td>
+                  {job.applications.map((app) => (
+                    <tr key={app.applicationId}>
+                      <td className="px-6 py-4 border border-blue-300">{app.userName}</td>
+                      <td className="px-6 py-4 border border-blue-300">{app.status}</td>
+                      <td className="px-6 py-4 border border-blue-300">{app.appliedAt}</td>
                       <td className="px-6 py-4 border border-blue-300">
-                        {application.status} {/* Display application status */}
-                      </td>
-                      <td className="px-6 py-4 border border-blue-300">
-                        {new Date(application.appliedAt).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 border border-blue-300">
-                        <button
-                          onClick={() => acceptApplication(job.id,application.applicationId)}
-                          className="bg-green-500 text-white px-4 py-2 rounded mr-2"
-                        >
-                          Accept
-                        </button>
-                        <button
-                          onClick={() => rejectApplication(job.id, application.applicationId)}
-                          className="bg-red-500 text-white px-4 py-2 rounded"
-                        >
-                          Reject
-                        </button>
+                        {app.status === 'Pending' && (
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() =>
+                                handleApplicationStatusChange(job.id, app.applicationId, 'Accepted')
+                              }
+                              className="px-4 py-2 bg-green-500 text-white rounded"
+                            >
+                              Accept
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleApplicationStatusChange(job.id, app.applicationId, 'Rejected')
+                              }
+                              className="px-4 py-2 bg-red-500 text-white rounded"
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))}

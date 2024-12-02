@@ -88,54 +88,79 @@ JobRoute.delete("/delete/:_id", authMiddleware, async (req, res) => {
     }
 });
 
-JobRoute.post('/apply/:jobId',userMiddleware,async (req, res) => {
+JobRoute.post('/apply/:jobId', userMiddleware, async (req, res) => {
   try {
-      const jobId = req.params.jobId;
-      const userId = req.user.id; // Assuming you have the user ID in the request (from authentication)
-      
-      // Find the job by ID
-      const job = await Job.findById(jobId);
-      
-      if (!job) {
-          return res.status(404).json({ message: "Job not found" });
-      }
+    const jobId = req.params.jobId;
+    const userId = req.user.userId;
 
-      // Check if the job is already closed or selected
-      if (job.jobstatus === "Closed") {
-          return res.status(400).json({ message: "Job is no longer available for application" });
-      }
+    const job = await Job.findById(jobId);
 
-      // Check if the user has already applied
-      const hasApplied = job.applications.some(application => application.userId.toString() === userId);
-      if (hasApplied) {
-          return res.status(400).json({ message: "You have already applied for this job" });
-      }
+    if (!job) {
+      return res.status(404).json({ message: "Job not found" });
+    }
 
-      // Add the user's application to the job
-      job.applications.push({
-          userId,
-          status: "Applied",
-          appliedAt: new Date(),
-      });
+    if (job.jobstatus === "Closed") {
+      return res.status(400).json({ message: "Job is no longer available for application" });
+    }
 
-      // Decrease the vacancy count
-      job.vacancy -= 1;
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+    
 
-      // If vacancy reaches 0, update job status to "Closed"
-      if (job.vacancy === 0) {
-          job.jobstatus = "Closed";
-      }
+    const validApplications = job.applications.filter((application) => application.userId);
+    const hasApplied = validApplications.some(
+        (application) => application.userId === userId
+      );
 
-      // Save the updated job document
-      await job.save();
+    if (hasApplied) {
+      return res.status(400).json({ message: "You have already applied for this job" });
+    }
 
-      // Respond with success
-      return res.status(200).json({ message: "Job applied successfully", job });
+    job.applications.push({
+      userId,
+      status: "Applied",
+      appliedAt: new Date(),
+    });
+
+    job.vacancy -= 1;
+    if (job.vacancy === 0) {
+      job.jobstatus = "Closed";
+    }
+
+    await job.save();
+
+    return res.status(200).json({ message: "Job applied successfully", job });
   } catch (error) {
-      console.error("Error applying for job:", error);
-      return res.status(500).json({ message: "An error occurred while applying for the job." });
+    console.error("Error applying for job:", error);
+    return res.status(500).json({ message: "An error occurred while applying for the job." });
   }
 });
+
+JobRoute.get("/jobs", userMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id; // Extract user ID from the authenticated user
+    const jobs = await Job.find().populate("applications.userId", "name"); // Populate user details if needed
+
+    const jobsWithStatus = jobs.map((job) => {
+      // Determine the application status for the current user
+      const application = job.applications.find(
+        (app) => app.userId === userId
+      );
+      return {
+        ...job._doc, // Include all existing job fields
+        applicationStatus: application ? application.status : "Not Applied",
+      };
+    });
+
+    res.status(200).json(jobsWithStatus);
+  } catch (error) {
+    console.error("Error fetching jobs:", error.message);
+    res.status(500).json({ message: "Server error. Please try again later." });
+  }
+});
+
+
 
 
 JobRoute.get("/applied", userMiddleware, async (req, res) => {
@@ -153,7 +178,7 @@ JobRoute.get("/applied", userMiddleware, async (req, res) => {
 
     // Map over jobs to include application details for the user
     const jobsWithApplicationDetails = jobs.map(job => {
-      const application = job.applications.find(app => app.userId.toString() === userId);
+      const application = job.applications.find(app => app.userId === userId);
       return {
         ...job.toObject(),
         applicationStatus: application.status,
@@ -168,124 +193,129 @@ JobRoute.get("/applied", userMiddleware, async (req, res) => {
   }
 });
 
+JobRoute.post('/:status/:jobId/:applicationId', authMiddleware, async (req, res) => {
+  const { status, jobId, applicationId } = req.params;
 
-JobRoute.get('/employer/applications', authMiddleware, async (req, res) => {
   try {
-    const employerId = req.user.id;  // Assuming the user is an employer and their ID is in the request
+    // Validate status
+    const validStatuses = ['accepted', 'rejected', 'pending'];
+    if (!validStatuses.includes(status.toLowerCase())) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
 
-    // Fetch jobs posted by the employer and populate applications' userId with user data
-    const jobs = await Job.find({ employerId: employerId })
+    // Find the job and application
+    const job = await Job.findById(jobId);
+    if (!job) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
+    const application = job.applications.id(applicationId); // Access subdocument by ID
+    if (!application) {
+      return res.status(404).json({ error: 'Application not found' });
+    }
+
+    // Update the application status
+    application.status = status.toLowerCase();
+    await job.save(); // Save changes to the database
+
+    return res.status(200).json({ success: true, message: 'Application status updated successfully' });
+  } catch (error) {
+    console.error('Error updating application status:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+JobRoute.get('/applications', authMiddleware, async (req, res) => {
+  try {
+    const employerId = req.user.id;
+
+    const jobs = await Job.find({ employerId })
       .populate({
         path: 'applications.userId',
-        model: 'Auth',   // Populate the userId field in the applications
-        select: 'firstName lastName'    // Only select the fields you need
+        model: 'Auth',
+        select: 'firstName lastName',
       });
 
     if (!jobs || jobs.length === 0) {
-      return res.status(404).json({ message: "No jobs found for this employer." });
+      return res.status(404).json({ message: 'No jobs found for this employer.' });
     }
 
-    // Format the job details and applications
-    const jobsWithApplications = jobs.map((job) => {
-      return {
-        id:job._id,
-        jobTitle: job.title,
-        jobDescription: job.description,
-        jobStatus: job.jobstatus,
-        applications: job.applications.map((application) => ({
-          applicationId:application._id,
-          userName: `${application.userId.firstName} ${application.userId.lastName}`,
-          status: application.status,
-          appliedAt: application.appliedAt,
-        })),
-      };
-    });
+    const jobsWithApplications = jobs.map((job) => ({
+      id: job._id,
+      jobTitle: job.title,
+      jobDescription: job.description,
+      jobStatus: job.jobStatus,
+      applications: job.applications.map((application) => ({
+        applicationId: application._id,
+        userName: `${application.userId.firstName} ${application.userId.lastName}`,
+        status: application.status,
+        appliedAt: application.appliedAt,
+      })),
+    }));
 
     return res.status(200).json({ success: true, jobs: jobsWithApplications });
   } catch (error) {
-    console.error("Error fetching job applications:", error);
-    return res.status(500).json({ message: "Internal server error", error });
+    console.error('Error fetching job applications:', error);
+    return res.status(500).json({ message: 'Internal server error', error });
   }
 });
 
-
-// Accept Application
+// Accept application
 JobRoute.post('/accept/:jobId/:applicationId', authMiddleware, async (req, res) => {
-  console.log(req.params)
   try {
     const { jobId, applicationId } = req.params;
-    const employerId = req.user.id;  // Employer's ID from the token
+    const employerId = req.user.id;
 
-    // Ensure jobId is a valid ObjectId
-    // if (!Types.ObjectId.isValid(jobId)) {
-    //   return res.status(400).json({ message: 'Invalid jobId' });
-    // }
-
-    // Find the job by ID
-    const job = await Job.findOne({ _id: jobId, employerId: employerId });
+    const job = await Job.findOne({ _id: jobId, employerId });
 
     if (!job) {
-      return res.status(404).json({ message: "Job not found or you're not the employer of this job" });
+      return res.status(404).json({ message: 'Job not found or unauthorized access.' });
     }
 
-    // Find the application to accept
-    const application = job.applications.find(app => app._id.toString() === applicationId);
+    const application = job.applications.find((app) => app._id.toString() === applicationId);
 
     if (!application) {
-      return res.status(404).json({ message: "Application not found" });
+      return res.status(404).json({ message: 'Application not found' });
     }
 
-    // Update the application status to "Accepted"
-    application.status = "Accepted";
+    application.status = 'Accepted';
+    await job.save();
 
-    // Optionally, you can close the job once an application is accepted
-    // job.jobStatus = "Closed";  // Uncomment if desired
-
-    await job.save();  // Save the updated job
-
-    return res.status(200).json({ message: "Application accepted successfully", job });
+    return res.status(200).json({ message: 'Application accepted successfully', job });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "An error occurred while accepting the application.", error });
+    console.error('Error accepting application:', error);
+    return res.status(500).json({ message: 'An error occurred.', error });
   }
 });
 
-// Reject Application
+// Reject application
 JobRoute.post('/reject/:jobId/:applicationId', authMiddleware, async (req, res) => {
   try {
     const { jobId, applicationId } = req.params;
-    const employerId = req.user.id;  // Employer's ID from the token
+    const employerId = req.user.id;
 
-    // Ensure jobId is a valid ObjectId
-    // if (!mongoose.Types.ObjectId.isValid(jobId)) {
-    //   return res.status(400).json({ message: 'Invalid jobId' });
-    // }
-
-    // Find the job by ID
-    const job = await Job.findOne({ _id: jobId, employerId: employerId });
+    const job = await Job.findOne({ _id: jobId, employerId });
 
     if (!job) {
-      return res.status(404).json({ message: "Job not found or you're not the employer of this job" });
+      return res.status(404).json({ message: 'Job not found or unauthorized access.' });
     }
 
-    // Find the application to reject
-    const application = job.applications.find(app => app._id.toString() === applicationId);
+    const application = job.applications.find((app) => app._id.toString() === applicationId);
 
     if (!application) {
-      return res.status(404).json({ message: "Application not found" });
+      return res.status(404).json({ message: 'Application not found' });
     }
 
-    // Update the application status to "Rejected"
-    application.status = "Rejected";
+    application.status = 'Rejected';
+    await job.save();
 
-    await job.save();  // Save the updated job
-
-    return res.status(200).json({ message: "Application rejected successfully", job });
+    return res.status(200).json({ message: 'Application rejected successfully', job });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "An error occurred while rejecting the application.", error });
+    console.error('Error rejecting application:', error);
+    return res.status(500).json({ message: 'An error occurred.', error });
   }
 });
+
 
 
 

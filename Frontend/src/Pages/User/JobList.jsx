@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 
 const JobList = () => {
   const [jobs, setJobs] = useState([]);
+  const [jobstat, setJob] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -24,20 +25,25 @@ const JobList = () => {
         const updatedJob = data.job;
 
         setJobs((prevJobs) =>
-          prevJobs.map((job) =>
-            job._id === jobId
-              ? {
-                  ...job,
-                  vacancy: updatedJob.vacancy,
-                  applications: job.applications.map((application) =>
-                    application.userId.toString() === currentUserId
-                      ? { ...application, status: "Pending" } 
-                      : application
-                  ),
-                }
-              : job
-          )
-        );
+        prevJobs.map((job) =>
+          job._id === jobId
+            ? {
+                ...job,
+                vacancy: updatedJob.vacancy,
+                applications: job.applications.map((application) => {
+                  if (application.userId) {
+                    return application.userId === currentUserId
+                      ? { ...application, status: "Pending" }
+                      : application;
+                  }
+                  console.warn("Invalid application:", application);
+                  return application; // Handle gracefully
+                }),
+              }
+            : job
+        )
+      );
+      
 
         alert("Job applied successfully");
       } else {
@@ -85,6 +91,7 @@ const JobList = () => {
           throw new Error("Failed to fetch jobs");
         }
         const data = await response.json();
+        console.log("Applications",data);
         setJobs(data);
         setLoading(false);
       } catch (error) {
@@ -96,9 +103,37 @@ const JobList = () => {
     fetchJobs();
   }, []);
 
+  useEffect(() => {
+    const fetchJob = async () => {
+      const token = localStorage.getItem("token");
+  
+      try {
+        const response = await fetch("/api/job/jobs", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error("Failed to fetch jobs");
+        }
+        const data = await response.json();
+        setJob(data); // Set the enhanced job data
+        setLoading(false);
+      } catch (error) {
+        setError(error.message);
+        setLoading(false);
+      }
+    };
+  
+    fetchJob();
+  }, []);
+  
+
+
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-blue-100 to-blue-300 p-8 mt-[-5%]">
-      <div className="bg-gradient-to-r from-blue-400 to-blue-600 shadow-xl rounded-xl p-8 w-full lg:w-3/4 animate-fadeIn">
+      <div className="bg-gradient-to-r from-blue-400 to-blue-600 shadow-xl rounded-xl p-8 w-full animate-fadeIn">
         <h2 className="text-center text-3xl font-bold text-white mb-8">Job List</h2>
         {loading ? (
           <div className="text-center text-white">Loading...</div>
@@ -127,15 +162,15 @@ const JobList = () => {
                   <td className="px-6 py-4 border border-blue-300">{job.salary} INR</td>
                   <td className="px-6 py-4 border border-blue-300">{job.vacancy}</td>
                   <td className="px-6 py-4 border border-blue-300">{job.jobstatus}</td>
+                  {jobstat.map((jobstatus)=>(
                   <td className="px-6 py-4 border border-blue-300">
                   {
-                    job.applications
-                      .map(application => application.userId.toString() === currentUserId ? application.status : null)
-                      .filter(status => status !== null)[0] || 'Not Applied'
+                    jobstatus.applicationStatus
                   }
                   </td>
+                  ))}
                   <td className="px-6 py-4 border border-blue-300 text-center space-x-4">
-                    {job.jobstatus !== "Closed" && job.vacancy > 0 && job.jobstatus !== "Pending" ? (
+                    {job.applicationStatus === "Not Applied" ? (
                       <button
                         onClick={() => handleApply(job._id)}
                         className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-400 transition"

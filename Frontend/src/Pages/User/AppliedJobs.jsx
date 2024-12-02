@@ -43,7 +43,7 @@ const JobList = () => {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-blue-100 to-blue-300 p-8 mt-[-5%]">
-      <div className="bg-gradient-to-r from-blue-400 to-blue-600 shadow-xl rounded-xl p-8 w-full lg:w-3/4 animate-fadeIn">
+      <div className="bg-gradient-to-r from-blue-400 to-blue-600 shadow-xl rounded-xl p-8 w-full animate-fadeIn">
         <h2 className="text-center text-3xl font-bold text-white mb-8">Job List</h2>
         {loading ? (
           <div className="text-center text-white">Loading...</div>

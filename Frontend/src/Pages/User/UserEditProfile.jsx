@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const UserEditProfile = ({ fetchUserDetails }) => {
+const UserEditProfile = () => {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -79,7 +79,6 @@ const UserEditProfile = ({ fetchUserDetails }) => {
 
       if (response.ok) {
         alert(result.message || "Profile updated successfully!");
-        fetchDetails();
       } else {
         console.error("Error updating profile:", result.message);
         alert(result.message || "Error updating profile");

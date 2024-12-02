@@ -41,11 +41,13 @@ const UserPage = () => {
 
           <div className="mx-auto mt-10 p-4 bg-white rounded-lg shadow-lg ml-10 mr-10 relative">
             <div className="text-center">
-              <img
-                className="w-32 h-32 rounded-full mx-auto border-4 border-blue-500"
-                src="/Frontend/src/Images/Polish_20230516_022418225.jpg"
-                alt="User"
-              />
+                <img
+                  width={150}
+                  height={150}
+                  src={ userDetails.profilePicture ? `http://localhost:8000/uploads/${userDetails.profilePicture}` : 'https://img.freepik.com/premium-vector/human-profile-icon-genderless-vector-illustration_276184-158.jpg?w=740' }
+                  alt={userDetails.profilePicture}
+                  className="mx-auto self-start max-w-full border-solid aspect-square border-[5px] rounded-full border-stone-50"
+                />
               <h2 className="mt-4 text-2xl font-extrabold animate-bounce">{userDetails.firstName}<span className='ml-2'></span>{userDetails.lastName}</h2>
               <p className="text-blue-600 font-semibold">Job Seeker, JOB LADDER</p>
             </div>
@@ -59,16 +61,16 @@ const UserPage = () => {
                   Email: <span className="font-normal">{userDetails.email}</span>
                 </p>
                 <p className="font-semibold">
-                  Phone: <span className="font-normal">----------</span>
+                  Phone: <span className="font-normal">{ userDetails.phoneNumber ? userDetails.phoneNumber : '-------------' }</span>
                 </p>
                 <p className="font-semibold">
-                  Location: <span className="font-normal">----------</span>
+                  Location: <span className="font-normal">{ userDetails.location ? userDetails.location : '-------------' }</span>
                 </p>
                 <p className="font-semibold">
                   Role: <span className="font-normal">User</span>
                 </p>
                 <p className="font-semibold">
-                  Qualification: <span className="font-normal">-----------</span>
+                  Qualification: <span className="font-normal">{ userDetails.qualification ? userDetails.qualification : '-------------' }</span>
                 </p>
               </div>
             </div>
