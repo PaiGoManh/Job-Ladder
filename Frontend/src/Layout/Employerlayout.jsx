@@ -3,7 +3,7 @@ import EmployerPage from '../Pages/Employer/EmployerPage'
 
 const Employerlayout = () => {
   return (
-   <EmployerPage/>
+   <EmployerPage />
    
    )
 }

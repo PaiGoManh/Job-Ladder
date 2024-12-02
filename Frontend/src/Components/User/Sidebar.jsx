@@ -29,6 +29,14 @@ const Sidebar = ({ setCurrentPage }) => {
             <li>
               <button
                 className="w-full text-left p-2 hover:bg-blue-500 rounded"
+                onClick={() => setCurrentPage("editprofile")}
+              >
+                 Edit Profile
+              </button>
+            </li>
+            <li>
+              <button
+                className="w-full text-left p-2 hover:bg-blue-500 rounded"
                 onClick={() => setCurrentPage("notifications")}
               >
                 Notifications

@@ -1,28 +1,32 @@
-// import { Router } from "express";
-// import { Auth } from "../Models/auth.js";
+// import express from "express";
+// import dotenv from "dotenv";
+// import multer from 'multer';
+// import Admin from '../Models/adminSettings.js'
+// import { adminMiddleware } from "../Middleware/adminMiddleware.js";
+// dotenv.config();
 
-// const adminRoute = Router();
+// const router = express.Router();
 
-// adminRoute.get("/getUserDetails", async (req, res) => {
-//     try {
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => cb(null, "uploads/"),
+//   filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
+// });
+// const upload = multer({ storage });
 
-//       const { email } = req.query; 
-  
-//       if (!email) {
-//         return res.status(400).json({ message: "Email is required" });
-//       }
-//       const user = await Auth.findOne({ email });
-  
-//       if (!user) {
-//         return res.status(404).json({ message: "User not found" });
-//       }
+// router.post("/updateAdmin",adminMiddleware, upload.single("profilePicture"), async (req, res) => {
+//   try {
+//     const userId = req.user.id; // Assuming authentication middleware sets req.user
+//     const { firstName, lastName, username, email, phoneNumber, bio, location } = req.body;
 
-//       const { password, ...userDetails } = user.toObject();
-//       res.status(200).json(userDetails);
-//     } catch (error) {
-//       console.error("Error fetching user details:", error);
-//       res.status(500).json({ message: "Internal server error" });
-//     }
-//   });
-  
-// export { adminRoute };
+//     const updateData = { firstName, lastName, username, email, phoneNumber, bio, location };
+//     if (req.file) updateData.profilePicture = req.file.filename;
+
+//     const updatedUser = await Admin.findByIdAndUpdate(userId, updateData, { new: true });
+//     res.status(200).json({ message: "Profile updated successfully", user: updatedUser });
+//   } catch (error) {
+//     console.error("Error updating profile:", error);
+//     res.status(500).json({ message: "Internal Server Error", error: error.message });
+//   }
+// });
+
+// export default router;

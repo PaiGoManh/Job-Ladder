@@ -1,8 +1,8 @@
 import Job from "../Models/Job.js"; 
 import express from "express";
 import dotenv from "dotenv";
-import { authMiddleware } from "../Middleware/employerMiddleware.js";
-import { userMiddleware } from "../Middleware/userMiddleware.js";
+import authMiddleware from "../Middleware/employerMiddleware.js";
+import userMiddleware from "../Middleware/userMiddleware.js";
 
 dotenv.config()
 
@@ -12,7 +12,7 @@ const JobRoute = express.Router();
 JobRoute.post("/addJob", authMiddleware, async (req, res) => {
   const { title, description, jobtype, salary, vacancy, courseCriteria } = req.body;
 
-  console.log("Received data:", { title, description, jobtype, salary, vacancy, courseCriteria });
+  console.log("Employer ID from authMiddleware:", req.user.userId); // Debugging
 
   if (!title || !description || !jobtype || !salary || !vacancy || !courseCriteria) {
     return res.status(400).json({ message: "All fields are required." });
@@ -26,19 +26,17 @@ JobRoute.post("/addJob", authMiddleware, async (req, res) => {
       salary,
       vacancy,
       courseCriteria,
-      employerId: req.user._id,  
+      employerId: req.user.userId, // Use userId from token payload
     });
 
     await newJob.save();
-    console.log("Job saved:", newJob);
-
-    // Send success response
     res.status(201).json({ message: "Job created successfully!", job: newJob });
   } catch (error) {
-    // Handle any errors that occur during job creation
+    console.error("Error during job creation:", error); // Log error details
     res.status(500).json({ message: "Error creating job", error: error.message });
   }
 });
+
 
   
   
@@ -61,7 +59,7 @@ JobRoute.post("/edit/:_id", authMiddleware, async (req, res) => {
   
     try {
       const job = await Job.findOneAndUpdate(
-        { _id: req.params._id, employerId: req.user._id },
+        { _id: req.params._id, employerId: req.user.userId, },
         req.body,
         { new: true }
       );

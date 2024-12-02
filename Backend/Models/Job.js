@@ -41,7 +41,6 @@ const JobSchema = new mongoose.Schema({
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Auth",  
-      required: true,
     },
     status: {
       type: String,

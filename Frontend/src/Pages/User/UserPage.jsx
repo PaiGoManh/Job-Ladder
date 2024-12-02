@@ -5,15 +5,17 @@ const UserPage = () => {
 
 
   const fetchUserDetails = async () => {
-    const email = localStorage.getItem("email");
+    const token = localStorage.getItem("token");
 
-    if (!email) {
-      console.error("No email found in localStorage.");
-      return;
-    }
   
     try {
-      const response = await fetch(`http://localhost:8000/auth/getUserDetails?email=${email}`);
+      const response = await fetch(`/api/auth/getUserDetails`,{
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
   
       if (!response.ok) {
         throw new Error("Failed to fetch user details.");
@@ -71,35 +73,6 @@ const UserPage = () => {
               </div>
             </div>
 
-            <div className="absolute top-4 right-4">
-              <a
-                href="/Frontend/Pages/UserEditProfile.html"
-                className="bg-gradient-to-r from-blue-600 to-blue-900 text-white font-bold py-3 px-6 rounded-full hover:bg-gradient-to-l hover:from-blue-900 hover:to-blue-600 transition duration-300 ease-in-out transform hover:scale-110 cursor-pointer animate-pulse"
-              >
-                EDIT PROFILE
-              </a>
-            </div>
-
-            {/* <div className="mt-10 flex flex-wrap justify-center gap-10">
-              <div>
-                <h3 className="font-extrabold text-blue-600 text-2xl mb-4">APPLIED JOBS</h3>
-                <a
-                  href="/Frontend/Pages/NotificationPage2.html"
-                  className="bg-gradient-to-r from-blue-600 to-blue-900 text-white font-bold py-3 px-6 rounded-full hover:bg-gradient-to-l hover:from-blue-900 hover:to-blue-600 transition duration-300 ease-in-out transform hover:scale-110 cursor-pointer animate-pulse"
-                >
-                  VIEW APPLIED JOBS
-                </a>
-              </div>
-              <div>
-                <h3 className="font-extrabold text-green-600 text-2xl mb-4">SAVED JOBS</h3>
-                <a
-                  href="/Frontend/Pages/SavedJobsPage.html"
-                  className="bg-gradient-to-r from-green-600 to-green-900 text-white font-bold py-3 px-6 rounded-full hover:bg-gradient-to-l hover:from-green-900 hover:to-green-600 transition duration-300 ease-in-out transform hover:scale-110 cursor-pointer animate-pulse"
-                >
-                  VIEW SAVED JOBS
-                </a>
-              </div>
-            </div> */}
           </div>
         </div>
       </div>

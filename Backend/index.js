@@ -5,7 +5,8 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { authRoute } from './Routes/authRoutes.js';
 import { JobRoute } from './Routes/jobRoutes.js';
-import userRoute from './Routes/userRoutes.js';  
+import userRoute from './Routes/userRoutes.js'; 
+import path from 'path' 
 
 
 dotenv.config();
@@ -19,11 +20,15 @@ JOBLADDER2_0.use(cors({
 }));
 JOBLADDER2_0.use(cookieParser());
 
+//multer
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
+JOBLADDER2_0.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+//mullter
+
 // Use Routes
 JOBLADDER2_0.use('/auth', authRoute);
 JOBLADDER2_0.use('/job', JobRoute);
 JOBLADDER2_0.use('/user', userRoute);
-
 
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/JOBLADDER3';

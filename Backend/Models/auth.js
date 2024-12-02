@@ -27,6 +27,22 @@ const AuthSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  phoneNumber: { 
+    type: String, 
+
+  },
+  bio: { 
+    type: String 
+  },
+  qualification: { 
+    type: String 
+  },
+  location :{ 
+    type:String
+  },
+  profilePicture: { 
+    type: String 
+  },
   role: {
     type: String,
     required: true,
@@ -34,16 +50,17 @@ const AuthSchema = new mongoose.Schema({
   },
   appliedJobs: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Job",  // Referencing the Job model
+    ref: "Job",  
   }],
   savedJobs: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Job",  // Referencing the Job model
+    ref: "Job",  
   }],
   createdAt: {
     type: Date,
     default: Date.now,
   },
+
 });
 
 const Auth = mongoose.model("Auth", AuthSchema);

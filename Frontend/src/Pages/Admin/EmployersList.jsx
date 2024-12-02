@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 
 const EmployerList = () => {
   const [employers, setEmployers] = useState([]);
-  const [loading, setLoading] = useState(true); // Initialize loading state as true
-  const [error, setError] = useState(null); // Initialize error state
+  const [loading, setLoading] = useState(true); 
+  const [error, setError] = useState(null); 
 
   const handleEdit = (id) => {
     const employerToEdit = employers.find((employer) => employer.id === id);

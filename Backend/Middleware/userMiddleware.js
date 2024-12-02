@@ -1,25 +1,33 @@
 import jwt from "jsonwebtoken";
-import Auth  from "../Models/auth.js";
+import dotenv from "dotenv";
 
-export const userMiddleware = async (req, res, next) => {
+dotenv.config();
+const secretKey = process.env.SECRET_KEY || "yourSecretKey";
+
+const userMiddleware = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "Unauthorized: No token provided" });
+  }
+
+  const token = authHeader.split(" ")[1];
+
   try {
-    const token = req.headers.authorization?.split(" ")[1];  // Extract the token from the Authorization header
+    const decoded = jwt.verify(token, secretKey);
+    console.log("Decoded token:", decoded); // Debugging
 
-    if (!token) {
-      return res.status(401).json({ message: "Unauthorized" });
+    // Ensure the role is employer
+    if (decoded.userRole !== "user") {
+      return res.status(403).json({ message: "Forbidden: access only" });
     }
 
-    const decoded = jwt.verify(token, process.env.SECRET_KEY);  // Verify and decode the token
-
-    const user = await Auth.findById(decoded.userId);  // Find the user by ID
-
-    if (!user || user.role !== "user") {
-      return res.status(403).json({ message: "Access denied. Only employers are allowed." });
-    }
-
-    req.user = user;  // Attach the user to the request object
-    next();  // Continue to the next middleware or route handler
+    req.user = decoded; // Attach user info to the request object
+    next();
   } catch (error) {
-    res.status(401).json({ message: "Invalid token", error });
+    console.error("Token verification error:", error);
+    return res.status(403).json({ message: "Invalid or expired token" });
   }
 };
+
+export default userMiddleware;

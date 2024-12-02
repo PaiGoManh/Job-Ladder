@@ -1,93 +1,159 @@
-import React from 'react';
+import React, { useState, useEffect } from "react";
 
-const EmployerEditProfile = () => {
-  return (
-    <>
-      {/* Edit Profile Form Container */}
+const EmployerEditProfile = ({ fetchDetails }) => {
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    username: "",
+    email: "",
+    phoneNumber: "",
+    bio: "",
+    location: "",
+    profilePicture: null,
+  });
+
+  useEffect(() => {
+    const fetchEmployDetails = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch("/api/auth/getEmployerDetails", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+          setFormData({
+            firstName: data.firstName || "",
+            lastName: data.lastName || "",
+            username: data.username || "",
+            email: data.email || "",
+            phoneNumber: data.phoneNumber || "",
+            bio: data.bio || "",
+            location: data.location || "",
+            profilePicture: null, 
+          });
+
+        } else {
+          console.error("Error fetching admin details:", data.message);
+        }
+      } catch (error) {
+        console.error("Error fetching admin details:", error);
+      } 
+    };
+
+    fetchEmployDetails();
+    }, []);
+
+    const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    if (name === "profilePicture") {
+      setFormData({ ...formData, profilePicture: files[0] });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
+    };
+
+    const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const updatedProfile = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      updatedProfile.append(key, value);
+    });
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/auth/updateEmployer", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: updatedProfile,
+      });
+      const result = await response.json();
+
+      if (response.ok) {
+        alert(result.message || "Profile updated successfully!");
+        fetchDetails();
+      } else {
+        console.error("Error updating profile:", result.message);
+        alert(result.message || "Error updating profile");
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      alert("Error updating profile");
+    }
+    };
+
+    return (
       <div className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-400 shadow-xl rounded-xl p-12 mt-10 w-4/5 lg:w-1/2 mx-auto transform transition duration-500 ease-in-out hover:scale-105 hover:shadow-2xl hover:bg-gradient-to-l hover:from-blue-300 hover:to-blue-500">
-        <form className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <h2 className="text-center text-3xl font-bold text-blue-500 mb-8">
             Edit Employer Details
           </h2>
-
-          {/* Employer Name */}
+          {[
+            { label: "First Name", name: "firstName", type: "text" },
+            { label: "Last Name", name: "lastName", type: "text" },
+            { label: "Username", name: "username", type: "text" },
+            { label: "Email", name: "email", type: "email" },
+            { label: "Phone Number", name: "phoneNumber", type: "tel" },
+            { label: "Bio", name: "bio", type: "text" },
+            { label: "Location", name: "location", type: "text" },
+          ].map(({ label, name, type }) => (
+            <div className="space-y-2" key={name}>
+              <label htmlFor={name} className="block text-lg text-white">
+                {label}
+              </label>
+              <input
+                type={type}
+                id={name}
+                name={name}
+                value={formData[name]}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition"
+                required={name !== "bio"}
+              />
+            </div>
+          ))}
+  
           <div className="space-y-2">
-            <label htmlFor="employerName" className="block text-lg text-blue-700">
-              Employer Name:
+            <label htmlFor="profilePicture" className="block text-lg text-white">
+              Profile Picture
             </label>
             <input
-              type="text"
-              id="employerName"
-              placeholder="Enter employer name"
-              required
-              className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+              type="file"
+              id="profilePicture"
+              name="profilePicture"
+              accept="image/*"
+              onChange={handleChange}
+              className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition"
             />
+            {/* {profilePicturePreview && (
+              <div className="mt-4">
+                <img
+                  src={profilePicturePreview}
+                  alt="Preview"
+                  className="w-32 h-32 rounded-full border-2 border-blue-500"
+                />
+              </div>
+            )} */}
           </div>
-
-          {/* Email */}
-          <div className="space-y-2">
-            <label htmlFor="email" className="block text-lg text-blue-700">
-              Email:
-            </label>
-            <input
-              type="email"
-              id="email"
-              placeholder="Enter email"
-              required
-              className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-            />
-          </div>
-
-          {/* Phone Number */}
-          <div className="space-y-2">
-            <label htmlFor="phone" className="block text-lg text-blue-700">
-              Phone Number:
-            </label>
-            <input
-              type="tel"
-              id="phone"
-              placeholder="Enter phone number"
-              required
-              className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-            />
-          </div>
-
-          {/* Location */}
-          <div className="space-y-2">
-            <label htmlFor="location" className="block text-lg text-blue-700">
-              Location:
-            </label>
-            <input
-              type="text"
-              id="location"
-              placeholder="Enter location"
-              required
-              className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-            />
-          </div>
-
-          {/* Save Changes Button */}
+  
           <div className="flex justify-center">
-            <input
+            <button
               type="submit"
-              value="Save Changes"
-              className="bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold py-3 px-10 rounded-full hover:bg-gradient-to-l hover:from-blue-600 hover:to-blue-700 transition duration-300 ease-in-out transform hover:scale-110 cursor-pointer animate-pulse"
-            />
+              className="bg-gradient-to-r from-blue-700 to-blue-900 text-white font-bold py-3 px-10 rounded-full hover:scale-110 transition"
+            >
+              Update Profile
+            </button>
           </div>
         </form>
       </div>
-
-      {/* Back to Profile Button */}
-      <div className="pt-8 text-center mt-10">
-        <a
-          href="/Frontend/Pages/EmployerProfile.html"
-          className="bg-gradient-to-r from-blue-600 to-blue-900 text-white font-bold py-4 px-10 rounded-full hover:bg-gradient-to-l hover:from-blue-900 hover:to-blue-700 transition duration-300 ease-in-out transform hover:scale-110 cursor-pointer animate-pulse"
-        >
-          BACK TO PROFILE
-        </a>
-      </div>
-    </>
-  );
-};
-
-export default EmployerEditProfile;
+    );
+  };
+  
+  export default EmployerEditProfile;
+  

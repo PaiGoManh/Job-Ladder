@@ -8,6 +8,7 @@ import Navbar from "../Components/User/Navbar";
 import JobList from "../Pages/User/JobList";
 import AppliedJobs from "../Pages/User/AppliedJobs";
 import SavedJobs from "../Pages/User/SavedJobs";
+import UserEditProfile from "../Pages/User/UserEditProfile"
 
 
 
@@ -30,6 +31,9 @@ const UserLayout = () => {
           return <SavedJobs/>;
       case "profile":
           return <JobList />;
+      case "editprofile":
+          return <UserEditProfile fetchUserDetails={fetchUserDetails}/>
+
       default:
         return <UserPage />;
     }

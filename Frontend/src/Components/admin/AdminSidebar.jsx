@@ -1,4 +1,5 @@
 import React from "react";
+import Logout from "../Logout";
 
 const AdminSidebar = ({ setCurrentPage }) => {
   return (
@@ -33,14 +34,14 @@ const AdminSidebar = ({ setCurrentPage }) => {
                 Edit Admin Profile
               </button>
             </li>
-            <li>
+            {/* <li>
               <button
                 className="w-full text-left p-2 hover:bg-blue-500 rounded"
                 onClick={() => setCurrentPage("addEmployer")}
               >
                 Add Employer
               </button>
-            </li>
+            </li> */}
             <li>
               <button
                 className="w-full text-left p-2 hover:bg-blue-500 rounded"
@@ -52,12 +53,8 @@ const AdminSidebar = ({ setCurrentPage }) => {
           </ul>
         </nav>
 
-        <div className="p-4">
-          <button   className="w-full bg-blue-900 hover:bg-blue-500 py-2 px-4 rounded"
-         
-          >
-            Logout
-          </button>
+        <div className="ml-[-60%] mt-3 hover:w-[200px] hover:ml-5">
+          <Logout/>
         </div>
       </aside>
     </div>

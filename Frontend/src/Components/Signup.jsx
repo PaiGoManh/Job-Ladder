@@ -43,7 +43,7 @@ const Signup = () => {
       }
 
       if (response.ok) {
-        alert("User  successfully registered!");
+        alert(" successfully registered!");
         navigate("/login");
       } else {
         setErrorMessage(data.message || "Signup failed.");

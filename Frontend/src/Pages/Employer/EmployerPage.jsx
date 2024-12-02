@@ -10,16 +10,17 @@ const EmployerPage = () => {
   const [currentPage, setCurrentPage] = useState("profile");
   const [userDetails, setUserDetails] = useState("");
 
-  const fetchUserDetails = async () => {
-    const email = localStorage.getItem("email");
-
-    if (!email) {
-      console.error("No email found in localStorage.");
-      return;
-    }
+  const fetchDetails = async () => {
+    const token = localStorage.getItem("token");
   
     try {
-      const response = await fetch(`http://localhost:8000/auth/getUserDetails?email=${email}`);
+      const response = await fetch(`/api/auth/getEmployerDetails`,{
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
   
       if (!response.ok) {
         throw new Error("Failed to fetch user details.");
@@ -35,7 +36,7 @@ const EmployerPage = () => {
   };
 
   useEffect(() => {
-    fetchUserDetails();
+    fetchDetails();
   }, []);
   
 
@@ -46,10 +47,12 @@ const EmployerPage = () => {
           <>
             <div className="mx-auto mt-2 p-4 bg-white rounded-lg shadow-lg ml-10 mr-10">
               <div className="text-center">
-                <img
-                  className="w-80 rounded-full mx-auto border-4 border-blue-500"
-                  src="/Frontend/src/Images/Polish_20230516_022418225.jpg"
-                  alt="Employer"
+              <img
+                  width={150}
+                  height={150}
+                  src={ userDetails.profilePicture ? `http://localhost:8000/uploads/${userDetails.profilePicture}` : 'https://img.freepik.com/premium-vector/human-profile-icon-genderless-vector-illustration_276184-158.jpg?w=740' }
+                  alt={userDetails.profilePicture}
+                  className="mx-auto self-start max-w-full border-solid aspect-square border-[5px] rounded-full border-stone-50"
                 />
                 <h2 className="mt-4 text-2xl font-bold animate-bounce">
                   {userDetails.firstName}<span className="ml-3"></span>{userDetails.lastName}
@@ -60,8 +63,8 @@ const EmployerPage = () => {
                 <h3 className="text-lg font-semibold mb-2">ACCOUNT INFORMATION</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <p>Email: {userDetails.email}</p>
-                  <p>Phone: -------------</p>
-                  <p>Location: -----------</p>
+                  <p>Phone: { userDetails.phoneNumber ? userDetails.phoneNumber : '-------------' }</p>
+                  <p>Location: { userDetails.location ? userDetails.location : '-------------' }</p>
                   <p>Role: Employer</p>
                 </div>
               </div>
@@ -81,7 +84,6 @@ const EmployerPage = () => {
           <div className="p-10 text-center">
             <h2 className="text-2xl font-bold">Add Job</h2>
             <p><EmployerAddJob/></p>
-            {/* Add Job Form Goes Here */}
           </div>
         );
       case "removeJob":
@@ -89,7 +91,6 @@ const EmployerPage = () => {
           <div className="p-10 text-center">
             <h2 className="text-2xl font-bold">Remove Job</h2>
             <p className="mt-[-15%]"><JobList/></p>
-            {/* Remove Job Form Goes Here */}
           </div>
         );
       case "viewJobs":
@@ -112,7 +113,7 @@ const EmployerPage = () => {
         return (
           <div className="p-10 text-center">
             <h2 className="text-2xl font-bold">Edit Employer Profile</h2>
-            <p><EmployerEditProfile/></p>
+            <p><EmployerEditProfile fetchDetails={fetchDetails}/></p>
             {/* Edit Profile Form Goes Here */}
           </div>
         );

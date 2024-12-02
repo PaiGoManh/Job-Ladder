@@ -12,23 +12,29 @@ const Adminpage = () => {
   const [userDetails, setUserDetails] = useState("");
 
   const fetchUserDetails = async () => {
-    const email = localStorage.getItem("email");
+    const  token = localStorage.getItem("token");
 
-    if (!email) {
+    if (!token) {
       console.error("No email found in localStorage.");
       return;
     }
   
     try {
-      const response = await fetch(`http://localhost:8000/auth/getUserDetails?email=${email}`);
-  
+      const response = await fetch(`http://localhost:8000/auth/getAdminDetails`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      
       if (!response.ok) {
         throw new Error("Failed to fetch user details.");
       }
   
       const data = await response.json();
       console.log("User details:", data);
-
+        
       setUserDetails(data);  
     } catch (error) {
       console.error("Error fetching user details:", error);
@@ -40,12 +46,13 @@ const Adminpage = () => {
   }, []);
   
 
+
   const renderContent = () => {
     switch (currentPage) {
       case "editAdmin":
         return (
           <div className="bg-white rounded-xl shadow-lg p-6 mt-4">
-            <AdminProfileUpdate />
+            <AdminProfileUpdate fetchUserDetails={fetchUserDetails} />
           </div>
         );
       case "addEmployer":
@@ -65,10 +72,12 @@ const Adminpage = () => {
           <div className="bg-gradient-to-r from-blue-200 to-blue-300 shadow-lg rounded-xl p-6 mt-4">
             <div className="text-center">
               <img
-                className="w-32 h-32 rounded-full mx-auto border-4 border-blue-500 shadow-md"
-                src="/Frontend/src/Images/Polish_20230516_022418225.jpg"
-                alt="Admin"
-              />
+                  width={150}
+                  height={150}
+                  src={ userDetails.profilePicture ? `http://localhost:8000/uploads/${userDetails.profilePicture}` : 'https://img.freepik.com/premium-vector/human-profile-icon-genderless-vector-illustration_276184-158.jpg?w=740' }
+                  alt={userDetails.profilePicture}
+                  className="mx-auto self-start max-w-full border-solid aspect-square border-[5px] rounded-full border-stone-50"
+                />
               <h2 className="mt-4 text-3xl font-bold text-blue-700 animate-pulse">
               {userDetails.firstName}<span className="ml-3"></span>{userDetails.lastName}
               </h2>
@@ -80,8 +89,8 @@ const Adminpage = () => {
               </h3>
               <div className="grid grid-cols-2 gap-6 text-gray-700 font-medium">
                 <p>Email:{userDetails.email}</p>
-                <p>Phone: </p>
-                <p>Location:</p>
+                <p>Phone: { userDetails.phoneNumber ? userDetails.phoneNumber : '-------------' }</p>
+                <p>Location: { userDetails.location ? userDetails.location : '-------------' }</p>
                 <p>Role: Admin</p>
               </div>
             </div>

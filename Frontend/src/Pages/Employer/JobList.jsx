@@ -224,14 +224,23 @@ const JobList = () => {
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-lg">Job Status</label>
-                <input
-                  type="text"
-                  value={jobData.jobstatus}
-                  onChange={(e) => setJobData({ ...jobData, jobstatus: e.target.value })}
-                  className="w-full border rounded-lg p-2"
-                />
-              </div>
+              <label className="block text-lg">Job Status</label>
+              <select
+                value={jobData.jobstatus}
+                onChange={(e) => setJobData({ ...jobData, jobstatus: e.target.value })}
+                className="w-full border rounded-lg p-2"
+              >
+                {/* Default option */}
+                <option value="" disabled>
+                  Select Job Status
+                </option>
+                {/* Enum options */}
+                <option value="Active">Active</option>
+                <option value="Closed">Closed</option>
+                <option value="Pending">Pending</option>
+              </select>
+            </div>
+
               <div className="flex justify-between">
                 <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg">Save</button>
                 <button

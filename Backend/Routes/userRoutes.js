@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import Auth  from "../Models/auth.js";  // Import Auth model
 import Job from "../Models/Job.js";
-import { userMiddleware } from "../Middleware/userMiddleware.js";
+import userMiddleware from "../Middleware/userMiddleware.js";
 
 
 
